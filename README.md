@@ -66,6 +66,7 @@ python data/pinterest_scraper.py \
 
 **Output:** `recipes.json` with structured recipe data.
 
+
 ---
 
 ### **2. Assign more features to the recipe**
@@ -79,6 +80,8 @@ python data/assign_cuisine.py \
 ```
 
 **Output:** `recipes.json` with this new data added to each recipe.
+
+**Dataset:** Made available on HuggingFace - https://huggingface.co/datasets/shanto268/pinterest_recipes 
 
 ### **3. Start the Discord Bot**
 
@@ -146,6 +149,9 @@ _Examples:_
      ![Recipe Bot 4](images/food4.png)
 
 ---
+
+
+
 
 ## License
 
