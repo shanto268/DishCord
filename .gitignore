@@ -1,0 +1,8 @@
+.env
+*.html
+*.json
+*.txt
+*.csv
+*.ipynb
+__pycache__/
+dev/
