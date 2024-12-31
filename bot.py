@@ -5,8 +5,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 from clients import GPTClient
-from ingredient_parser import parse_ingredients_with_llm
 from manager import MemoryManager, RecipeManager
+from parsers import *
 from utils import *
 
 load_dotenv(".env")
@@ -44,7 +44,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 memory = MemoryManager(max_history=10)
 gpt = GPTClient(url=OLLAMA_URL, model=OLLAMA_MODEL)
 recipe_manager = RecipeManager()
-recipe_manager.load_from_json("data/recipes.json")
+recipe_manager.load_from_json("data/synthetic_recipes.json")
 
 @bot.event
 async def on_ready():
@@ -169,6 +169,96 @@ async def recipe_command(ctx, *, query: str = ""):
         embed.set_footer(text=f"SadMad Recipe Bot • {domain_part}")
 
         await ctx.send(embed=embed)
+
+@bot.command(name="food")
+async def food_command(ctx, *, query: str = ""):
+    """
+    Handles queries like:
+    - "!food show me N recipes for X type of food"
+    - "!food any quick and easy X recipes that I can make?"
+    - "!food X recipes that use A,B,C ingredients"
+    Uses LLM to parse and RecipeManager to retrieve recipes.
+    """
+    if not query.strip():
+        await ctx.send("Please provide a query. Example: `!food show me 3 recipes for Italian food`.")
+        return
+
+    # Parse query using LLM
+    parsed_query = parse_query_with_llm(query, OLLAMA_URL, OLLAMA_MODEL)
+
+    if parsed_query["action"] == "error":
+        await ctx.send("Sorry, I couldn't understand your query. Please try rephrasing.")
+        return
+
+    # Extract parsed details
+    action = parsed_query.get("action", "")
+    filters = parsed_query.get("filters", {})
+    limit = parsed_query.get("limit", 5)
+
+    # Handle actions
+    if action in ["show", "find"]:
+        food_type = filters.get("type", "").lower()
+        ingredients = filters.get("ingredients", [])
+        difficulty = filters.get("difficulty", "")
+
+        # Fetch recipes based on filters
+        if ingredients:
+            recipes = recipe_manager.find_recipes_by_ingredients(ingredients)
+        elif difficulty:
+            recipes = recipe_manager.get_quick_easy_recipes(food_type)
+        else:
+            recipes = recipe_manager.get_recipes_by_type(food_type, limit)
+
+        # No recipes found
+        if not recipes:
+            await ctx.send(f"No recipes found matching your query: {filters}.")
+            return
+
+        # Send recipes as embeds
+        for recipe in recipes[:limit]:
+            embed = discord.Embed(
+                title=recipe.title or "Untitled Recipe",
+                url=recipe.source_url,
+                description=f"Difficulty: {recipe.extra.get('difficulty', 'unknown')} | "
+                            f"Time: {recipe.extra.get('time', 'unknown')}",
+                color=discord.Color.green()
+            )
+            embed.add_field(name="Ingredients", value=", ".join(recipe.ingredients) if recipe.ingredients else "N/A", inline=False)
+            if recipe.image_url:
+                embed.set_image(url=recipe.image_url)
+            embed.set_footer(text=f"Source: {recipe.source_url}")
+
+            await ctx.send(embed=embed)
+
+    elif action == "suggest":
+        # Suggest general recipes
+        recipes = recipe_manager.get_recipes_by_type("", limit)
+        if not recipes:
+            await ctx.send("Sorry, I couldn't find any recipe suggestions at the moment.")
+            return
+
+        for recipe in recipes[:limit]:
+            embed = discord.Embed(
+                title=recipe.title or "Untitled Recipe",
+                url=recipe.source_url,
+                description=f"Difficulty: {recipe.extra.get('difficulty', 'unknown')} | "
+                            f"Time: {recipe.extra.get('time', 'unknown')}",
+                color=discord.Color.blue()
+            )
+            embed.add_field(name="Ingredients", value=", ".join(recipe.ingredients) if recipe.ingredients else "N/A", inline=False)
+            if recipe.image_url:
+                embed.set_image(url=recipe.image_url)
+            embed.set_footer(text=f"Source: {recipe.source_url}")
+
+            await ctx.send(embed=embed)
+
+    else:
+        await ctx.send(
+            "I didn't understand that query. Try:\n"
+            "- `!food show me 3 recipes for Italian food`\n"
+            "- `!food any quick and easy seafood recipes that I can make?`\n"
+            "- `!food Italian recipes that use shrimp, garlic, and lemon`"
+        )
 
 if __name__ == "__main__":
     bot.run(DISCORD_BOT_TOKEN)

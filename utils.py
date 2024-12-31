@@ -4,6 +4,18 @@ import discord
 import tldextract
 
 
+# Utility Function to Format Recipe Responses
+def format_recipe_list(recipes) -> str:
+    """
+    Formats a list of Recipe objects into a user-friendly string.
+    """
+    if not recipes:
+        return "No recipes found."
+    return "\n".join(
+        f"{i+1}. {recipe.title} ({recipe.extra.get('time', 'N/A')}) - [Link]({recipe.source_url})"
+        for i, recipe in enumerate(recipes)
+    )
+
 def fallback_title_for(recipe) -> str:
     """
     If recipe.title is empty, fallback to domain name of recipe.source_url.

@@ -35,13 +35,15 @@ class Recipe:
         source_url: str,
         title: str,
         image_url: str,
-        ingredients: Optional[List[str]] = None
+        ingredients: Optional[List[str]] = None,
+        extra: Optional[dict] = None
     ):
         self.pinterest_url = pinterest_url
         self.source_url = source_url
         self.title = title 
         self.image_url = image_url
         self.ingredients = ingredients if ingredients else []
+        self.extra = extra
 
     def has_ingredients_v0(self, user_ingredients: List[str]) -> bool:
         """

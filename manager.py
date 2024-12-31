@@ -113,17 +113,20 @@ class RecipeManager:
                 title = recipe_data.get("title", "")
                 image_url = recipe_data.get("image_url", "")
                 ingredients = recipe_data.get("ingredients", [])
+                extra = recipe_data.get("extra", {})
+
 
                 recipe_obj = Recipe(
                     pinterest_url=pinterest_url,
                     source_url=source_url,
                     title=title,
                     image_url=image_url,
-                    ingredients=ingredients
+                    ingredients=ingredients,
+                    extra=extra
                 )
                 self.recipes.append(recipe_obj)
 
-    def find_recipes_by_ingredients(self, user_ingredients: List[str]) -> List[Recipe]:
+    def find_recipes_by_ingredients(self, user_ingredients: List[str]):
         """
         Returns a list of recipes that match the given user_ingredients.
         """
@@ -136,3 +139,29 @@ class RecipeManager:
             if recipe.has_ingredients(user_ingredients):
                 matched.append(recipe)
         return matched
+
+    def get_recipes_by_type(self, food_type: str, limit: [int] = None):
+        """
+        Finds recipes matching the specified food type.
+        """
+        matching_recipes = [
+            recipe for recipe in self.recipes
+            if food_type.lower() in map(str.lower, recipe.extra.get("cuisines", []))
+        ]
+        return matching_recipes[:limit] if limit else matching_recipes
+
+    def get_quick_easy_recipes(self, food_type: [str] = None):
+        """
+        Finds quick and easy recipes, optionally filtered by food type.
+        """
+        matching_recipes = [
+            recipe for recipe in self.recipes
+            if recipe.extra.get("difficulty", "").lower() == "easy"
+            and "30" in recipe.extra.get("time", "").lower()
+        ]
+        if food_type:
+            matching_recipes = [
+                recipe for recipe in matching_recipes
+                if food_type.lower() in map(str.lower, recipe.extra.get("cuisines", []))
+            ]
+        return matching_recipes
