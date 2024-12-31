@@ -1,6 +1,6 @@
-# Discord Bot with Recipes from Pinterest
+# DishCord 📍🍽️🤖: Discord Bot with Recipes from Pinterest Board
 
-My girlfriend woke up today with the idea of being able to search for recipes based on ingredients from her [food Pinterest board](https://www.pinterest.com/madihowa/foods/). Four hours later, she got this bot that does just that. 🍽️
+My girlfriend woke up today with the idea of being able to search for recipes based on ingredients from her [food Pinterest board](https://www.pinterest.com/madihowa/foods/). Four hours later, she got this bot that does just that.
 
 ---
 
