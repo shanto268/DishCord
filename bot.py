@@ -44,7 +44,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 memory = MemoryManager(max_history=10)
 gpt = GPTClient(url=OLLAMA_URL, model=OLLAMA_MODEL)
 recipe_manager = RecipeManager()
-recipe_manager.load_from_json("data/synthetic_recipes.json")
+recipe_manager.load_from_json("data/recipes_all_analyzed.json")
 
 @bot.event
 async def on_ready():

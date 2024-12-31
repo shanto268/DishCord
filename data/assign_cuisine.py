@@ -108,8 +108,8 @@ def add_analysis_tags_with_llm(input_file, output_file):
 
 if __name__ == "__main__":
     # Input and output file paths
-    input_file = "recipes_test.json"
-    output_file = "recipes_marked.json"
+    input_file = "recipes_all.json"
+    output_file = "recipes_all_analyzed.json"
 
     # Add analysis tags using the LLM
     add_analysis_tags_with_llm(input_file, output_file)

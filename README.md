@@ -73,7 +73,7 @@ python data/pinterest_scraper.py \
 Assign features like cuisine, difficulty, etc, to the recipes:
 
 ```bash
-python data/process_data.py \
+python data/assign_cuisine.py \
     --input_file recipes.json \
     --output_file recipes.json
 ```
