@@ -97,3 +97,8 @@ _Example:_
 This project is open-source and available under the [MIT License](LICENSE).
 
 ---
+
+# To Do:
+
+- [ ] Handle queries such as "Show me N recipes for X type of food."
+- [ ] Allow for exploratory chat features using the recipes.json knowledge base. e.g. "I want to make pasta" -> "What type of pasta?" -> "Spaghetti" -> "What sauce?" -> "Tomato" -> "Here's a recipe for Spaghetti with Tomato Sauce."
