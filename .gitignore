@@ -9,3 +9,4 @@ dev/
 data/outfits/*.*
 # not requirements.txt
 !requirements.txt
+data/outfits.zip

@@ -187,7 +187,7 @@ def analyze_image_with_ollama(image_path, link, date_added, model_name='llama3.2
                 "    \"occasions\": [\"string\", ...]\n"
                 "  },\n"
                 "  \"extra_attributes\": {\n"
-                "    \"notable_features\": [\"string\", ...]  // Any additional inferred details\n"
+                "    \"notable_features\": [\"string\", ...]  // Any additional inferred details and recognized brands\n"
                 "  }\n"
                 "}\n\n"
                 "Only return valid JSON. Do not include any extra text or explanations."
