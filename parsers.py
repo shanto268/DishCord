@@ -99,3 +99,62 @@ def parse_query_with_llm(query: str, model_url: str, model_name: str) -> dict:
     except Exception as e:
         print(f"[ERROR] LLM Query Parsing Failed: {e}")
         return {"action": "error", "filters": {}, "limit": 0}
+
+def parse_outfit_query_with_ollama(query, OLLAMA_URL, OLLAMA_MODEL):
+    """
+    Uses Ollama to parse a user's outfit query into structured criteria.
+    :param query: The user input query.
+    :return: A dictionary containing parsed query criteria.
+    """
+    prompt = (
+        "You are a clothing and outfit matching assistant. Parse the following query into structured JSON format. "
+        "The JSON should include:\n"
+        "1. `filters`: A dictionary with keys such as `type` (e.g., casual, formal, winter), "
+        "`colors` (list of colors), `materials` (list of materials), and `seasons` (e.g., winter, summer).\n"
+        "2. `limit`: The maximum number of outfits to return.\n\n"
+        f"Query: {query}\n\n"
+        "Output strictly in JSON format with no extra text."
+    )
+
+    payload = {"prompt": prompt, "model": OLLAMA_MODEL, "stream": False}
+    try:
+        response = requests.post(OLLAMA_URL, json=payload, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        response_text = data.get("response", "").strip()
+
+        # Extract and parse the JSON response
+        start_idx = response_text.find("{")
+        end_idx = response_text.rfind("}")
+        if start_idx == -1 or end_idx == -1:
+            raise ValueError("JSON block not found in response text.")
+        json_block = response_text[start_idx:end_idx + 1]
+        return json.loads(json_block)
+    except Exception as e:
+        print(f"Error parsing query with Ollama: {e}")
+        return {"filters": {}, "limit": 1}
+
+
+def match_outfits(analyzed_data, filters, limit):
+    """
+    Matches outfits based on filters and returns the top results.
+    Handles both dictionary and list structures for `analyzed_data`.
+    """
+    # Convert list to a dictionary if needed
+    if isinstance(analyzed_data, list):
+        analyzed_data = {entry.get("image"): entry for entry in analyzed_data if "image" in entry}
+
+    # Ensure analyzed_data is a dictionary at this point
+    if not isinstance(analyzed_data, dict):
+        raise ValueError("Invalid data format. Expected dictionary or list of dictionaries.")
+
+    # Filter outfits
+    matching_outfits = []
+    for image, details in analyzed_data.items():
+        if all(
+            detail in details.get("clothing", {}).get("top", {}).get("color", "").lower()
+            for detail in filters.get("colors", [])
+        ):  # Example filter logic
+            matching_outfits.append((image, details))
+
+    return matching_outfits[:limit]

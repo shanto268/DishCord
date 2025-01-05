@@ -46,6 +46,10 @@ gpt = GPTClient(url=OLLAMA_URL, model=OLLAMA_MODEL)
 recipe_manager = RecipeManager()
 recipe_manager.load_from_json("data/recipes_all_analyzed.json")
 
+# Load the analyzed dataset
+with open("data/outfits_analyzed.json", "r", encoding="utf-8") as f:
+    analyzed_data = json.load(f)
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
@@ -259,6 +263,46 @@ async def food_command(ctx, *, query: str = ""):
             "- `!food any quick and easy seafood recipes that I can make?`\n"
             "- `!food Italian recipes that use shrimp, garlic, and lemon`"
         )
+
+@bot.command(name="outfits")
+async def outfit_command(ctx, *, query: str = ""):
+    """
+    Handles queries like:
+    - "!outfit show me 2 casual outfits that use red shirts"
+    - "!outfit is there an outfit with black shirt and white jeans?"
+    - "!outfit show me 3 winter outfits"
+    """
+    if not query.strip():
+        await ctx.send("Please provide a query. Example: `!outfit show me 3 winter outfits`.")
+        return
+
+    # Parse query using Ollama
+    parsed_query = parse_outfit_query_with_ollama(query, OLLAMA_URL, OLLAMA_MODEL)
+    print(f"Parsed query: {parsed_query}")
+    filters = parsed_query.get("filters", {})
+    limit = parsed_query.get("limit", 1)
+
+    # Match outfits
+    matching_outfits = match_outfits(analyzed_data, filters, limit)
+    print(f"Matching outfits: {matching_outfits}")
+
+    if not matching_outfits:
+        await ctx.send(f"No outfits found matching your query: {query}")
+    else:
+        response = f"Here are {len(matching_outfits)} outfits that match your query:\n"
+        for outfit in matching_outfits:
+            # If outfit is a tuple, extract the image field correctly
+            if isinstance(outfit, tuple):
+                image_path = outfit[1]["image"]  # The second element is likely the details dictionary
+            else:
+                image_path = outfit["image"]  # Directly use if it's already a dictionary
+
+            try:
+                await ctx.send(file=discord.File(image_path))
+            except FileNotFoundError:
+                await ctx.send(f"Image file not found: {image_path}")
+            except Exception as e:
+                await ctx.send(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     bot.run(DISCORD_BOT_TOKEN)
